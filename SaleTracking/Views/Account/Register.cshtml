@@ -1,0 +1,52 @@
+@model RegisterViewModel
+@{
+    ViewData["Title"] = "Create account";
+}
+
+<div class="auth-shell single-panel">
+    <section class="auth-card">
+        <div class="auth-card-header text-center mb-4">
+            <span class="eyebrow">GET STARTED</span>
+            <h2 class="mt-1">Create your account</h2>
+            <p>Already have an account? <a asp-action="Login">Log in</a></p>
+        </div>
+
+        <form asp-action="Register" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="mb-3">
+                <label asp-for="Name">Full name</label>
+                <input asp-for="Name" class="form-control" placeholder="Your full name" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Email"></label>
+                <input asp-for="Email" class="form-control" placeholder="you@example.com" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="WhatsAppNumber"></label>
+                <input asp-for="WhatsAppNumber" class="form-control" type="tel" inputmode="tel" autocomplete="tel" data-phone-number placeholder="03001234567 or +923001234567" />
+                <small class="text-muted d-block">Use digits, with an optional country code. Letters are not allowed.</small>
+                <span asp-validation-for="WhatsAppNumber" class="text-danger d-block"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Password"></label>
+                <input asp-for="Password" class="form-control" autocomplete="new-password" aria-describedby="register-password-help" placeholder="At least 8 characters" />
+                <small id="register-password-help" class="text-muted d-block mt-2">@AccountFieldRules.PasswordMessage</small>
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="ConfirmPassword">Confirm password</label>
+                <input asp-for="ConfirmPassword" class="form-control" autocomplete="new-password" placeholder="Repeat your password" />
+                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+            </div>
+
+            <button class="btn btn-primary w-100 py-2 fw-bold" type="submit">Create account →</button>
+        </form>
+    </section>
+</div>

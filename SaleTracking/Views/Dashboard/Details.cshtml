@@ -1,0 +1,312 @@
+@model TrackingItem
+@{
+    ViewData["Title"] = $"Details · {Model.TrackingId}";
+    var isTargetMet = Model.CurrentPrice.HasValue && Model.CurrentPrice.Value <= Model.TargetPrice;
+    var domain = "External link";
+    if (Uri.TryCreate(Model.ProductUrl, UriKind.Absolute, out var uri))
+    {
+        domain = uri.Host.Replace("www.", "");
+    }
+}
+
+<div class="page-heading">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div>
+            <a asp-action="TrackedProducts" class="back-link mb-2 d-inline-flex align-items-center gap-1">
+                ← Back to Tracked Products
+            </a>
+            <div class="d-flex align-items-center gap-3 mt-1 flex-wrap">
+                <h1 class="font-monospace mb-0">@Model.TrackingId</h1>
+                @if (Model.IsNotified)
+                {
+                    <span class="badge-status badge-notified">
+                        <span class="status-dot"></span> Alert submitted
+                    </span>
+                }
+                else if (Model.IsActive)
+                {
+                    <span class="badge-status badge-active">
+                        <span class="status-dot"></span> Active
+                    </span>
+                }
+                else
+                {
+                    <span class="badge-status badge-disabled">
+                        <span class="status-dot"></span> Disabled
+                    </span>
+                }
+            </div>
+            <p class="text-muted mt-2 mb-0">Monitoring product from <strong>@domain</strong></p>
+        </div>
+
+        <div class="action-btn-group">
+            <form asp-action="CheckNow" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.TrackingId" />
+                <input type="hidden" name="returnUrl" value="@Url.Action("Details", new { id = Model.TrackingId })" />
+                <button type="submit" class="btn btn-success" title="Check live price right now">
+                    Check Price Now
+                </button>
+            </form>
+
+            <form asp-action="Toggle" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="trackingId" value="@Model.TrackingId" />
+                <input type="hidden" name="returnUrl" value="@Url.Action("Details", new { id = Model.TrackingId })" />
+                <button type="submit" class="btn @(Model.IsActive ? "btn-outline-secondary" : "btn-primary")">
+                    @(Model.IsActive ? "Pause Tracker" : "Resume Tracker")
+                </button>
+            </form>
+
+            <button type="button" class="btn btn-outline-primary"
+                    data-bs-toggle="modal" data-bs-target="#editTrackModal"
+                    data-id="@Model.TrackingId"
+                    data-url="@Model.ProductUrl"
+                    data-checktype="@Model.CheckType"
+                    data-targetprice="@Model.TargetPrice"
+                    data-interval="@Model.CheckIntervalMinutes"
+                    data-startdate="@(Model.StartDate?.ToString("yyyy-MM-dd") ?? "")"
+                    data-starttime="@(Model.StartTime?.ToString("HH:mm") ?? "")"
+                    data-enddate="@(Model.EndDate?.ToString("yyyy-MM-dd") ?? "")"
+                    data-endtime="@(Model.EndTime?.ToString("HH:mm") ?? "")"
+                    data-disableafter="@(Model.DisableAfterNotification ? "true" : "false")"
+                    data-isactive="@(Model.IsActive ? "true" : "false")"
+                    onclick="populateEditTrackModal(this)">
+                Edit Settings
+            </button>
+
+            <button type="button" class="btn btn-outline-danger" onclick="openDeleteModal('@Model.TrackingId')">
+                Delete
+            </button>
+        </div>
+    </div>
+</div>
+
+<partial name="_Alerts" />
+
+<div class="row g-4 mt-1">
+    <!-- Price Comparison Card -->
+    <div class="col-lg-6">
+        <div class="content-card h-100">
+            <h2 class="section-title">Price Monitoring</h2>
+            
+            <div class="price-comparison-grid mt-4">
+                <div class="price-box target-box">
+                    <span class="price-box-label">Target Price</span>
+                    <strong class="price-box-val text-primary">Rs. @Model.TargetPrice.ToString("N2")</strong>
+                    <small class="text-muted">Alert threshold</small>
+                </div>
+
+                <div class="price-box current-box @(isTargetMet ? "target-reached-box" : "")">
+                    <span class="price-box-label">Current Price</span>
+                    @if (Model.CurrentPrice.HasValue)
+                    {
+                        <strong class="price-box-val @(isTargetMet ? "text-success" : "")">
+                            Rs. @Model.CurrentPrice.Value.ToString("N2")
+                        </strong>
+                        <small class="@(isTargetMet ? "text-success fw-bold" : "text-muted")">
+                            @(isTargetMet ? "Target reached!" : $"Difference: Rs. {(Model.CurrentPrice.Value - Model.TargetPrice).ToString("N2")} above target")
+                        </small>
+                    }
+                    else
+                    {
+                        <strong class="price-box-val text-muted fst-italic fs-4">Pending</strong>
+                        <small class="text-muted">Will check on schedule</small>
+                    }
+                </div>
+            </div>
+
+            @if (isTargetMet)
+            {
+                <div class="alert alert-success mt-4 mb-0 d-flex align-items-center gap-2">
+                    <div>
+                        <strong>Price target met!</strong> The current price is at or below your target threshold of Rs. @Model.TargetPrice.ToString("N2").
+                    </div>
+                </div>
+            }
+
+            <div class="mt-4 pt-3 border-top">
+                <label class="form-label text-muted small fw-bold text-uppercase">Target Product Link</label>
+                <div class="d-flex align-items-center justify-content-between gap-3 p-3 bg-light rounded-3">
+                    <div class="text-truncate">
+                        <a href="@Model.ProductUrl" target="_blank" rel="noopener noreferrer" class="fw-semibold text-break">
+                            @Model.ProductUrl
+                        </a>
+                    </div>
+                    <a href="@Model.ProductUrl" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-light border flex-shrink-0">
+                        Visit Page ↗
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tracking Configuration & History Card -->
+    <div class="col-lg-6">
+        <div class="content-card h-100">
+            <h2 class="section-title">Schedule & Settings</h2>
+
+            <dl class="details-list mt-4 mb-0">
+                <div class="details-row">
+                    <dt>Alert Condition</dt>
+                    <dd class="fw-bold text-primary">
+                        @Model.CheckTypeDisplay
+                    </dd>
+                </div>
+
+                <div class="details-row">
+                    <dt>Stock Status</dt>
+                    <dd>
+                        @if (Model.IsInStock == true)
+                        {
+                            <span class="badge-status badge-active py-1 px-2.5"><span class="status-dot"></span> In Stock</span>
+                        }
+                        else if (Model.IsInStock == false)
+                        {
+                            <span class="badge-status badge-outofstock py-1 px-2.5"><span class="status-dot"></span> Out of Stock</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted small fst-italic">Pending check</span>
+                        }
+                    </dd>
+                </div>
+
+                <div class="details-row">
+                    <dt>Timer Interval</dt>
+                    <dd class="fw-bold">
+                        Every @Model.CheckIntervalMinutes minute@(Model.CheckIntervalMinutes == 1 ? "" : "s")
+                    </dd>
+                </div>
+
+                <div class="details-row">
+                    <dt>WhatsApp Alert Number</dt>
+                    <dd class="fw-bold text-success">
+                        @(string.IsNullOrWhiteSpace(Model.TargetWhatsAppNumber) ? "Your registered number in Settings" : Model.TargetWhatsAppNumber)
+                    </dd>
+                </div>
+
+                <div class="details-row">
+                    <dt>Date & Time Range (@TrackingSchedule.DisplayName)</dt>
+                    <dd>
+                        @if (Model.StartDate.HasValue && Model.EndDate.HasValue)
+                        {
+                            <span>@Model.StartDate.Value.ToString("yyyy-MM-dd") @(Model.StartTime.HasValue ? Model.StartTime.Value.ToString("HH:mm") : "") to @Model.EndDate.Value.ToString("yyyy-MM-dd") @(Model.EndTime.HasValue ? Model.EndTime.Value.ToString("HH:mm") : "")</span>
+                        }
+                        else if (Model.StartDate.HasValue)
+                        {
+                            <span>Starts @Model.StartDate.Value.ToString("yyyy-MM-dd") @(Model.StartTime.HasValue ? Model.StartTime.Value.ToString("HH:mm") : "")</span>
+                        }
+                        else if (Model.EndDate.HasValue)
+                        {
+                            <span>Ends @Model.EndDate.Value.ToString("yyyy-MM-dd") @(Model.EndTime.HasValue ? Model.EndTime.Value.ToString("HH:mm") : "")</span>
+                        }
+                        else
+                        {
+                            @if (Model.StartTime.HasValue || Model.EndTime.HasValue)
+                            {
+                                <span>Daily @(Model.StartTime?.ToString("HH:mm") ?? "00:00") to @(Model.EndTime?.ToString("HH:mm") ?? "23:59")</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-light text-dark border">Continuous (No expiration)</span>
+                            }
+                        }
+                    </dd>
+                </div>
+
+                <div class="details-row">
+                    <dt>Auto-Disable Rule</dt>
+                    <dd>
+                        @(Model.DisableAfterNotification ? "Disable automatically after first alert" : "Keep checking after alert")
+                    </dd>
+                </div>
+
+                <div class="details-row">
+                    <dt>Alert Status</dt>
+                    <dd>
+                        @if (Model.IsNotified)
+                        {
+                            <span class="text-success fw-bold">✓ Alert submitted successfully</span>
+                            @if (!string.IsNullOrWhiteSpace(Model.NotificationMessageSid))
+                            {
+                                <small class="text-muted d-block font-monospace">Ref: @Model.NotificationMessageSid</small>
+                            }
+                            @if (Model.NotifiedAt.HasValue)
+                            {
+                                <small class="text-muted d-block">on @Model.NotifiedAt.Value.ToLocalTime().ToString("f")</small>
+                            }
+                        }
+                        else if (!string.IsNullOrWhiteSpace(Model.LastAlertError))
+                        {
+                            <span class="text-danger">@Model.LastAlertError</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Awaiting price drop condition</span>
+                        }
+                    </dd>
+                </div>
+
+                <div class="details-row">
+                    <dt>Last Checked</dt>
+                    <dd>
+                        @(Model.LastCheckedAt.HasValue ? Model.LastCheckedAt.Value.ToLocalTime().ToString("f") : "Not checked yet")
+                        @if (!string.IsNullOrWhiteSpace(Model.LastCheckError))
+                        {
+                            <small class="text-danger d-block">@Model.LastCheckError</small>
+                        }
+                    </dd>
+                </div>
+
+                <div class="details-row">
+                    <dt>Created On</dt>
+                    <dd>
+                        @Model.CreatedAt.ToLocalTime().ToString("f")
+                    </dd>
+                </div>
+            </dl>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content delete-modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Delete Tracking Entry</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete tracking entry <strong class="font-monospace text-danger">@Model.TrackingId</strong>?</p>
+                <p class="text-muted small mb-0">This tracker will permanently stop monitoring prices and will be removed from your dashboard.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" asp-action="Delete">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.TrackingId" />
+                    <input type="hidden" name="returnUrl" value="@Url.Action("TrackedProducts")" />
+                    <button type="submit" class="btn btn-danger">Delete Permanently</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openDeleteModal() {
+            const modalEl = document.getElementById('deleteModal');
+            if (window.bootstrap && window.bootstrap.Modal) {
+                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modal.show();
+            } else {
+                if (confirm('Are you sure you want to delete this tracking entry?')) {
+                    document.querySelector('#deleteModal form').submit();
+                }
+            }
+        }
+    </script>
+}

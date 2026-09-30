@@ -1,0 +1,40 @@
+@model LoginViewModel
+@{
+    ViewData["Title"] = "Sign in";
+}
+
+<div class="auth-shell single-panel">
+    <section class="auth-card" aria-labelledby="login-heading">
+        <div class="sign-in-header">
+            <div class="sign-in-brand"><span class="brand-mark" aria-hidden="true">S</span>SaleTrack</div>
+            <h1 id="login-heading">Sign in</h1>
+            <p>Welcome back. Sign in to your account to manage your tracks and alerts.</p>
+        </div>
+
+        <partial name="_Alerts" />
+
+        <form asp-action="Login" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="sign-in-field">
+                <label asp-for="Email"></label>
+                <input asp-for="Email" class="form-control" placeholder="you@example.com" autocomplete="username" />
+                <span asp-validation-for="Email" class="text-danger d-block"></span>
+            </div>
+            <div class="sign-in-field">
+                <label asp-for="Password"></label>
+                <input asp-for="Password" class="form-control" placeholder="Your password" autocomplete="current-password" />
+                <span asp-validation-for="Password" class="text-danger d-block"></span>
+            </div>
+            <div class="login-options">
+                <div class="form-check">
+                    <input asp-for="RememberMe" class="form-check-input" />
+                    <label asp-for="RememberMe" class="form-check-label">Remember me</label>
+                </div>
+                <a asp-action="ForgotPassword">Forgot password?</a>
+            </div>
+            <button class="btn btn-primary w-100 mt-4" type="submit">Sign In</button>
+        </form>
+
+        <p class="sign-in-register">New to SaleTrack? <a asp-action="Register">Create an account</a></p>
+    </section>
+</div>

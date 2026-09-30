@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "D:\\SaleTracking\\.archify\\architecture-saletracking-runtime-20260929-172017\\candidate.json",
+    "sha256": "85e38087828e2cb23c3d8da96af69666c8ded1fca7498714e74fdde05bbececb",
+    "bytes": 11161
+  },
+  "artifact": {
+    "path": "D:\\SaleTracking\\.archify\\architecture-saletracking-runtime-20260929-172017\\saletracking-runtime.html",
+    "sha256": "833dfd962ddb5601a5f3891c2a4198ab2417a77d3681dd30b173e9b998962c2f",
+    "bytes": 779638
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "D:\\SaleTracking\\.archify\\architecture-saletracking-runtime-20260929-172017\\saletracking-runtime.finalize.json",
+    "summaryReceipt": "D:\\SaleTracking\\.archify\\architecture-saletracking-runtime-20260929-172017\\saletracking-runtime.finalize-summary.json",
+    "browserCheckReceipt": "D:\\SaleTracking\\.archify\\architecture-saletracking-runtime-20260929-172017\\saletracking-runtime.browser-check.json"
+  },
+  "update": {
+    "status": "unavailable",
+    "installedVersion": null,
+    "availableVersion": null,
+    "releaseNotes": null,
+    "checkedAt": null,
+    "source": null,
+    "noticeRequired": false,
+    "noticeText": null,
+    "reason": "disabled"
+  },
+  "visualReview": "not-requested",
+  "durationMs": 14994,
+  "visualReviewRecommendation": {
+    "action": "inspect-route-readability",
+    "signals": {
+      "resolvedCrossovers": 1,
+      "routesOverSuggestedBends": 1
+    },
+    "reason": "Automated gates passed, but crossings or detours still need perceptual review before claiming visual quality.",
+    "affectedRoutes": {
+      "crossings": [
+        {
+          "left": {
+            "id": "manual-check",
+            "from": "web",
+            "to": "processor",
+            "label": "Check Now",
+            "collectionIndex": 1,
+            "artifactIndex": 2
+          },
+          "right": {
+            "id": "check-persistence",
+            "from": "processor",
+            "to": "sqlite",
+            "label": "Checks / receipts",
+            "collectionIndex": 7,
+            "artifactIndex": 8
+          },
+          "point": [
+            568.2,
+            423.99999999999994
+          ],
+          "sharedNode": "processor"
+        }
+      ],
+      "detours": [
+        {
+          "relationship": {
+            "id": "manual-check",
+            "from": "web",
+            "to": "processor",
+            "label": "Check Now",
+            "collectionIndex": 1,
+            "artifactIndex": 2
+          },
+          "bends": 3,
+          "stretch": 1.189
+        }
+      ],
+      "truncated": false
+    },
+    "hints": [
+      "web → processor and processor → sqlite cross next to processor: move node web or sqlite so the two reach processor from different sides (for example one level with it, one directly above or below it).",
+      "web → processor needs 3 bends: move node web or processor so they share a row or column with matching centers, or sit diagonally with a clear corner."
+    ],
+    "repair": "Trace these relationships at the desktop viewport. For Architecture, use references/architecture-layout-repair.md: reflow a blocked main path or tangled connected scene, and repair an isolated defect locally only when the surrounding composition is accepted. Preserve all semantic content and user-fixed geometry. Rerun finalize once after the edit."
+  }
+}

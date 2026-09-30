@@ -1,0 +1,140 @@
+@model CreateTrackViewModel
+@{
+    ViewData["Title"] = "Create New Track";
+    ViewData["WorkspaceClass"] = "create-track-workspace";
+    var pref = ViewData["NotificationPreference"] as string ?? "WhatsApp";
+    var isInApp = string.Equals(pref, "InApp", StringComparison.OrdinalIgnoreCase);
+}
+
+<form asp-action="NewSale" method="post" class="create-track-form" aria-labelledby="create-track-title">
+    <header class="create-track-heading">
+        <h1 id="create-track-title">Create new track</h1>
+    </header>
+
+    <partial name="_Alerts" />
+
+    @if (isInApp)
+    {
+        <p class="track-notification-note" role="status">In-app alerts are active. Notifications will appear in your notification bell.</p>
+    }
+
+    @if (!ViewData.ModelState.IsValid && ViewData.ModelState.Values.Any(v => v.Errors.Count > 0))
+    {
+        <div class="alert alert-danger modern-alert" role="alert">
+            <div class="alert-content">
+                <span class="alert-icon">⚠</span>
+                <div asp-validation-summary="All" class="mb-0"></div>
+            </div>
+        </div>
+    }
+
+    <div class="track-field">
+        <label asp-for="ProductUrl" class="form-label"></label>
+        <input asp-for="ProductUrl" type="text" inputmode="url" class="form-control" placeholder="https://example.com/product" />
+        <span asp-validation-for="ProductUrl" class="text-danger d-block"></span>
+    </div>
+
+    <div class="track-field-row">
+        <div class="track-field">
+            <label asp-for="CheckType" class="form-label">Alert Condition</label>
+            <select asp-for="CheckType" class="form-select form-control" id="checkTypeSelect">
+                <option value="TargetPrice">Target Price Reached</option>
+                <option value="InStock">Product In Stock (Availability)</option>
+                <option value="Both">Both (Target Price & In Stock)</option>
+            </select>
+            <span asp-validation-for="CheckType" class="text-danger d-block"></span>
+        </div>
+        <div class="track-field" id="targetPriceContainer">
+            <label asp-for="TargetPrice" class="form-label" id="targetPriceLabel">Target price (Rs.)</label>
+            <div class="input-group">
+                <span class="input-group-text">Rs.</span>
+                <input asp-for="TargetPrice" id="targetPriceInput" class="form-control" placeholder="5000" step="any" min="1" />
+            </div>
+            <span asp-validation-for="TargetPrice" class="text-danger d-block"></span>
+        </div>
+    </div>
+
+    <div class="track-field">
+        <label asp-for="CheckIntervalMinutes" class="form-label"></label>
+        <div class="input-group">
+            <input asp-for="CheckIntervalMinutes" class="form-control" min="1" max="10080" />
+            <span class="input-group-text">minutes</span>
+        </div>
+        <span asp-validation-for="CheckIntervalMinutes" class="text-danger d-block"></span>
+    </div>
+
+    <div class="track-field">
+        <label asp-for="WhatsAppNumber" class="form-label">
+            WhatsApp alerts @if (isInApp) { <span class="track-optional">(optional)</span> }
+        </label>
+        <div class="input-group">
+            <input asp-for="WhatsAppNumber" class="form-control" type="tel" inputmode="tel" autocomplete="tel" data-phone-number readonly="@(ViewData["HasRegisteredPhone"] as bool? == true)" placeholder="+923001234567 or 03001234567" />
+        </div>
+        <span asp-validation-for="WhatsAppNumber" class="text-danger d-block"></span>
+    </div>
+
+    <fieldset class="track-date-range">
+        <legend>Date & Time range <span class="track-optional">(optional)</span></legend>
+        <div class="track-field-row">
+            <div class="track-field">
+                <label asp-for="StartDate" class="form-label">Start Date</label>
+                <input asp-for="StartDate" class="form-control" type="date" />
+                <span asp-validation-for="StartDate" class="text-danger d-block"></span>
+            </div>
+            <div class="track-field">
+                <label asp-for="StartTime" class="form-label">Start Time (@TrackingSchedule.DisplayName) <span class="track-optional">(optional)</span></label>
+                <input asp-for="StartTime" class="form-control" type="time" />
+                <span asp-validation-for="StartTime" class="text-danger d-block"></span>
+            </div>
+        </div>
+        <div class="track-field-row mt-3">
+            <div class="track-field">
+                <label asp-for="EndDate" class="form-label">End Date</label>
+                <input asp-for="EndDate" class="form-control" type="date" />
+                <span asp-validation-for="EndDate" class="text-danger d-block"></span>
+            </div>
+            <div class="track-field">
+                <label asp-for="EndTime" class="form-label">End Time (@TrackingSchedule.DisplayName) <span class="track-optional">(optional)</span></label>
+                <input asp-for="EndTime" class="form-control" type="time" />
+                <span asp-validation-for="EndTime" class="text-danger d-block"></span>
+            </div>
+        </div>
+    </fieldset>
+
+    <div class="form-check tracking-option">
+        <input asp-for="DisableAfterNotification" class="form-check-input" />
+        <label asp-for="DisableAfterNotification" class="form-check-label"></label>
+    </div>
+
+    <div class="track-form-actions">
+        <a class="btn btn-track-cancel" asp-controller="Dashboard" asp-action="TrackedProducts">Cancel</a>
+        <button class="btn btn-create-track" type="submit">
+            <span>Create track</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M5 12h14m-6-6 6 6-6 6" />
+            </svg>
+        </button>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        const checkTypeSelect = document.getElementById('checkTypeSelect');
+        const targetPriceLabel = document.getElementById('targetPriceLabel');
+        const targetPriceInput = document.getElementById('targetPriceInput');
+
+        function updateTargetPriceState() {
+            if (!checkTypeSelect || !targetPriceLabel) return;
+            if (checkTypeSelect.value === 'InStock') {
+                targetPriceLabel.innerHTML = 'Target price (Rs.) <span class="track-optional">(optional for In Stock)</span>';
+                if (targetPriceInput) targetPriceInput.placeholder = 'Optional';
+            } else {
+                targetPriceLabel.textContent = 'Target price (Rs.)';
+                if (targetPriceInput) targetPriceInput.placeholder = '5000';
+            }
+        }
+
+        checkTypeSelect?.addEventListener('change', updateTargetPriceState);
+        updateTargetPriceState();
+    </script>
+}

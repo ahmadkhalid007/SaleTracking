@@ -1,0 +1,21 @@
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show modern-alert" role="alert">
+        <div class="alert-content">
+            <span class="alert-icon">✓</span>
+            <div>@TempData["SuccessMessage"]</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show modern-alert" role="alert">
+        <div class="alert-content">
+            <span class="alert-icon">⚠</span>
+            <div>@TempData["ErrorMessage"]</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}

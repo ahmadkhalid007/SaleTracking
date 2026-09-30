@@ -1,0 +1,504 @@
+@inject SaleTracking.Services.IAccountStore AccountStore
+@{
+    var currentEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+    var currentUser = !string.IsNullOrEmpty(currentEmail) ? AccountStore.FindByEmail(currentEmail) : null;
+    var userPhone = currentUser?.WhatsAppNumber ?? "";
+    var userInterval = currentUser?.DefaultCheckIntervalMinutes > 0 ? currentUser.DefaultCheckIntervalMinutes : 1;
+    var userPref = currentUser?.DefaultNotificationPreference ?? "WhatsApp";
+    var currentPath = Context.Request.Path + Context.Request.QueryString;
+}
+
+<!-- Modal 1: Create New Track Popup Form -->
+<div class="modal fade" id="createTrackModal" tabindex="-1" aria-labelledby="createTrackModalLabel" aria-hidden="true" data-bs-backdrop="true">
+    <div class="modal-dialog modal-dialog-centered modal-blur-dialog">
+        <div class="modal-content modal-blur-content">
+            <div class="modal-blur-header">
+                <h5 class="modal-blur-title d-flex align-items-center gap-2" id="createTrackModalLabel">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Create New Track
+                </h5>
+                <button type="button" class="modal-blur-close" data-bs-dismiss="modal" aria-label="Close">✕</button>
+            </div>
+            <div class="modal-blur-body">
+                <form asp-controller="Create" asp-action="NewSale" method="post" id="createTrackPopupForm" class="create-track-form p-0 shadow-none border-0 bg-transparent m-0">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="returnUrl" value="@currentPath" />
+
+                    <div class="track-field mb-3">
+                        <label for="modalProductUrl" class="form-label">Product URL</label>
+                        <input id="modalProductUrl" name="ProductUrl" type="text" inputmode="url" class="form-control" placeholder="https://example.com/product" required />
+                    </div>
+
+                    <div class="track-field-row mb-3">
+                        <div class="track-field">
+                            <label for="modalCheckType" class="form-label">Alert Condition</label>
+                            <select id="modalCheckType" name="CheckType" class="form-select form-control">
+                                <option value="TargetPrice">Target Price Reached</option>
+                                <option value="InStock">Product In Stock (Availability)</option>
+                                <option value="Both">Both (Target Price & In Stock)</option>
+                            </select>
+                        </div>
+                        <div class="track-field" id="modalTargetPriceContainer">
+                            <label for="modalTargetPrice" class="form-label" id="modalTargetPriceLabel">Target Price (Rs.)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">Rs.</span>
+                                <input id="modalTargetPrice" name="TargetPrice" class="form-control" placeholder="5000" step="any" min="1" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="track-field-row mb-3">
+                        <div class="track-field">
+                            <label for="modalCheckInterval" class="form-label">Check Interval</label>
+                            <div class="input-group">
+                                <input id="modalCheckInterval" name="CheckIntervalMinutes" class="form-control" min="1" max="10080" value="@userInterval" />
+                                <span class="input-group-text">mins</span>
+                            </div>
+                        </div>
+                        <div class="track-field">
+                            <label for="modalWhatsApp" class="form-label">WhatsApp Number <span class="text-muted small">(optional)</span></label>
+                            <input id="modalWhatsApp" name="WhatsAppNumber" class="form-control" type="tel" value="@userPhone" placeholder="+923001234567 or 03001234567" />
+                        </div>
+                    </div>
+
+                    <fieldset class="track-date-range mb-3">
+                        <legend>Date & Time range <span class="track-optional">(optional)</span></legend>
+                        <div class="track-field-row mb-2">
+                            <div class="track-field">
+                                <label for="modalStartDate" class="form-label">Start Date</label>
+                                <input id="modalStartDate" name="StartDate" class="form-control" type="date" />
+                            </div>
+                            <div class="track-field">
+                                <label for="modalStartTime" class="form-label">Start Time (@TrackingSchedule.DisplayName)</label>
+                                <input id="modalStartTime" name="StartTime" class="form-control" type="time" />
+                            </div>
+                        </div>
+                        <div class="track-field-row">
+                            <div class="track-field">
+                                <label for="modalEndDate" class="form-label">End Date</label>
+                                <input id="modalEndDate" name="EndDate" class="form-control" type="date" />
+                            </div>
+                            <div class="track-field">
+                                <label for="modalEndTime" class="form-label">End Time (@TrackingSchedule.DisplayName)</label>
+                                <input id="modalEndTime" name="EndTime" class="form-control" type="time" />
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <div class="d-flex justify-content-end align-items-center gap-2 mt-4 pt-2 border-top">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-create-track">
+                            <svg class="create-track-plus" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            <span>Start Tracking</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 2: Account & Tracking Settings Popup Form -->
+<div class="modal fade" id="accountSettingsModal" tabindex="-1" aria-labelledby="accountSettingsModalLabel" aria-hidden="true" data-bs-backdrop="true">
+    <div class="modal-dialog modal-dialog-centered modal-blur-dialog">
+        <div class="modal-content modal-blur-content">
+            <div class="modal-blur-header">
+                <h5 class="modal-blur-title d-flex align-items-center gap-2" id="accountSettingsModalLabel">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    Account & Tracking Settings
+                </h5>
+                <button type="button" class="modal-blur-close" data-bs-dismiss="modal" aria-label="Close">✕</button>
+            </div>
+            <div class="modal-blur-body">
+                <form asp-controller="Settings" asp-action="Index" method="post" id="accountSettingsPopupForm" class="settings-card-form p-0 shadow-none border-0 bg-transparent m-0">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="returnUrl" value="@currentPath" />
+
+                    <div class="track-field mb-3">
+                        <label for="modalSettingsName" class="form-label">Full Name</label>
+                        <input id="modalSettingsName" name="Name" class="form-control" value="@currentUser?.Name" placeholder="Your Full Name" required />
+                    </div>
+
+                    <div class="track-field-row mb-3">
+                        <div class="track-field">
+                            <label for="modalSettingsEmail" class="form-label">Email Address</label>
+                            <input id="modalSettingsEmail" name="Email" type="email" class="form-control" value="@currentUser?.Email" placeholder="you@example.com" required />
+                        </div>
+                        <div class="track-field">
+                            <label for="modalSettingsPhone" class="form-label">WhatsApp Number</label>
+                            <input id="modalSettingsPhone" name="WhatsAppNumber" class="form-control" type="tel" value="@currentUser?.WhatsAppNumber" placeholder="03001234567 or +923001234567" />
+                        </div>
+                    </div>
+
+                    <div class="track-field-row mb-3">
+                        <div class="track-field">
+                            <label for="modalSettingsInterval" class="form-label">Default Check Interval</label>
+                            <div class="input-group">
+                                <input id="modalSettingsInterval" name="DefaultCheckIntervalMinutes" class="form-control" type="number" min="1" max="10080" value="@userInterval" />
+                                <span class="input-group-text">mins</span>
+                            </div>
+                        </div>
+                        <div class="track-field">
+                            <label for="modalSettingsPref" class="form-label">Default Notification Preference</label>
+                            <select id="modalSettingsPref" name="DefaultNotificationPreference" class="form-select">
+                                <option value="WhatsApp" selected="@(userPref == "WhatsApp")">WhatsApp</option>
+                                <option value="Email" selected="@(userPref == "Email")">Email</option>
+                                <option value="InApp" selected="@(userPref == "InApp")">In-App (Website Bell)</option>
+                                <option value="Both" selected="@(userPref == "Both")">WhatsApp & Email</option>
+                                <option value="All" selected="@(userPref == "All")">All Channels (WhatsApp, Email & In-App)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end align-items-center gap-2 mt-4 pt-2 border-top">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-create-track">
+                            <span>Save Settings</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 3: Security & Password Popup Form -->
+<div class="modal fade" id="securitySettingsModal" tabindex="-1" aria-labelledby="securitySettingsModalLabel" aria-hidden="true" data-bs-backdrop="true">
+    <div class="modal-dialog modal-dialog-centered modal-blur-dialog">
+        <div class="modal-content modal-blur-content">
+            <div class="modal-blur-header">
+                <h5 class="modal-blur-title d-flex align-items-center gap-2" id="securitySettingsModalLabel">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                    Security & Password
+                </h5>
+                <button type="button" class="modal-blur-close" data-bs-dismiss="modal" aria-label="Close">✕</button>
+            </div>
+            <div class="modal-blur-body">
+                <form asp-controller="Settings" asp-action="ChangePassword" method="post" id="securitySettingsPopupForm" class="settings-card-form p-0 shadow-none border-0 bg-transparent m-0">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="returnUrl" value="@currentPath" />
+
+                    <div class="track-field mb-3">
+                        <label for="modalCurrentPassword" class="form-label">Current Password</label>
+                        <div class="password-input-wrap position-relative">
+                            <input type="password" id="modalCurrentPassword" name="currentPassword" class="form-control pe-5" placeholder="Enter current password" required />
+                            <button type="button" class="btn-password-toggle" onclick="togglePasswordVisibility('modalCurrentPassword', this)" title="Show/hide password">
+                                <svg class="eye-show" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                                <svg class="eye-hide d-none" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="track-field mb-3">
+                        <label for="modalNewPassword" class="form-label">New Password</label>
+                        <div class="password-input-wrap position-relative">
+                            <input type="password" id="modalNewPassword" name="newPassword" class="form-control pe-5" placeholder="Enter new password" required />
+                            <button type="button" class="btn-password-toggle" onclick="togglePasswordVisibility('modalNewPassword', this)" title="Show/hide password">
+                                <svg class="eye-show" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                                <svg class="eye-hide d-none" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                            </button>
+                        </div>
+                        <small class="text-muted d-block mt-1">Must be at least 8 characters with uppercase, lowercase, number, and special character.</small>
+                    </div>
+
+                    <div class="track-field mb-3">
+                        <label for="modalConfirmNewPassword" class="form-label">Confirm New Password</label>
+                        <div class="password-input-wrap position-relative">
+                            <input type="password" id="modalConfirmNewPassword" name="confirmNewPassword" class="form-control pe-5" placeholder="Repeat new password" required />
+                            <button type="button" class="btn-password-toggle" onclick="togglePasswordVisibility('modalConfirmNewPassword', this)" title="Show/hide password">
+                                <svg class="eye-show" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                                <svg class="eye-hide d-none" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end align-items-center gap-2 mt-4 pt-2 border-top">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-create-track">
+                            <span>Update Password</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 4: Edit Track Popup Form -->
+<div class="modal fade" id="editTrackModal" tabindex="-1" aria-labelledby="editTrackModalLabel" aria-hidden="true" data-bs-backdrop="true">
+    <div class="modal-dialog modal-dialog-centered modal-blur-dialog">
+        <div class="modal-content modal-blur-content">
+            <div class="modal-blur-header">
+                <div class="d-flex align-items-center gap-2">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                    <h5 class="modal-blur-title mb-0" id="editTrackModalLabel">Edit tracking entry</h5>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span id="modalEditTrackingIdPill" class="tracking-id-pill font-monospace small px-2 py-1"></span>
+                    <button type="button" class="modal-blur-close" data-bs-dismiss="modal" aria-label="Close">✕</button>
+                </div>
+            </div>
+            <div class="modal-blur-body">
+                <form id="editTrackPopupForm" method="post" action="" class="create-track-form p-0 shadow-none border-0 bg-transparent m-0">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="modalEditTrackingId" name="TrackingId" value="" />
+                    <input type="hidden" name="returnUrl" value="@currentPath" />
+
+                    <div class="track-field mb-3">
+                        <label for="modalEditProductUrl" class="form-label">Product URL</label>
+                        <input id="modalEditProductUrl" name="ProductUrl" type="text" inputmode="url" class="form-control" placeholder="https://example.com/product" required />
+                    </div>
+
+                    <div class="track-field-row mb-3">
+                        <div class="track-field">
+                            <label for="modalEditCheckType" class="form-label">Alert Condition</label>
+                            <select id="modalEditCheckType" name="CheckType" class="form-select form-control">
+                                <option value="TargetPrice">Target Price Reached</option>
+                                <option value="InStock">Product In Stock (Availability)</option>
+                                <option value="Both">Both (Target Price & In Stock)</option>
+                            </select>
+                        </div>
+                        <div class="track-field" id="modalEditTargetPriceContainer">
+                            <label for="modalEditTargetPrice" class="form-label" id="modalEditTargetPriceLabel">Target price (Rs.)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">Rs.</span>
+                                <input id="modalEditTargetPrice" name="TargetPrice" class="form-control" placeholder="5000" step="any" min="1" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="track-field mb-3">
+                        <label for="modalEditCheckInterval" class="form-label">Check every (minutes)</label>
+                        <div class="input-group">
+                            <input id="modalEditCheckInterval" name="CheckIntervalMinutes" class="form-control" min="1" max="10080" />
+                            <span class="input-group-text">minutes</span>
+                        </div>
+                    </div>
+
+                    <fieldset class="track-date-range mb-3">
+                        <legend>Date & Time range <span class="track-optional">(optional)</span></legend>
+                        <div class="track-field-row mb-2">
+                            <div class="track-field">
+                                <label for="modalEditStartDate" class="form-label">Start Date</label>
+                                <input id="modalEditStartDate" name="StartDate" class="form-control" type="date" />
+                            </div>
+                            <div class="track-field">
+                                <label for="modalEditStartTime" class="form-label">Start Time (@TrackingSchedule.DisplayName) <span class="track-optional">(optional)</span></label>
+                                <input id="modalEditStartTime" name="StartTime" class="form-control" type="time" />
+                            </div>
+                        </div>
+                        <div class="track-field-row">
+                            <div class="track-field">
+                                <label for="modalEditEndDate" class="form-label">End Date</label>
+                                <input id="modalEditEndDate" name="EndDate" class="form-control" type="date" />
+                            </div>
+                            <div class="track-field">
+                                <label for="modalEditEndTime" class="form-label">End Time (@TrackingSchedule.DisplayName) <span class="track-optional">(optional)</span></label>
+                                <input id="modalEditEndTime" name="EndTime" class="form-control" type="time" />
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <div class="track-field-row mb-3">
+                        <div class="form-check tracking-option">
+                            <input id="modalEditDisableAfter" name="DisableAfterNotification" type="checkbox" value="true" class="form-check-input" />
+                            <label for="modalEditDisableAfter" class="form-check-label">
+                                Disable after 1st alert
+                            </label>
+                        </div>
+                        <div class="form-check tracking-option">
+                            <input id="modalEditIsActive" name="IsActive" type="checkbox" value="true" class="form-check-input" />
+                            <label for="modalEditIsActive" class="form-check-label">
+                                Tracker is active
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end align-items-center gap-2 mt-4 pt-2 border-top">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-create-track">
+                            <span>Save changes</span>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Toggle Alert Condition fields in Create Track popup
+    function updateModalCheckType() {
+        const checkType = document.getElementById('modalCheckType')?.value;
+        const targetPriceInput = document.getElementById('modalTargetPrice');
+        const targetPriceLabel = document.getElementById('modalTargetPriceLabel');
+
+        if (checkType === 'InStock') {
+            if (targetPriceLabel) targetPriceLabel.innerHTML = 'Target Price (Rs.) <span class="text-muted small fw-normal">(optional)</span>';
+            if (targetPriceInput) {
+                targetPriceInput.placeholder = 'Optional for In-Stock';
+                targetPriceInput.removeAttribute('required');
+            }
+        } else {
+            if (targetPriceLabel) targetPriceLabel.innerHTML = 'Target Price (Rs.)';
+            if (targetPriceInput) {
+                targetPriceInput.placeholder = '5000';
+            }
+        }
+    }
+
+    document.getElementById('modalCheckType')?.addEventListener('change', updateModalCheckType);
+    updateModalCheckType();
+
+    // Toggle Alert Condition fields in Edit Track popup
+    function updateModalEditCheckType() {
+        const checkType = document.getElementById('modalEditCheckType')?.value;
+        const targetPriceInput = document.getElementById('modalEditTargetPrice');
+        const targetPriceLabel = document.getElementById('modalEditTargetPriceLabel');
+
+        if (checkType === 'InStock') {
+            if (targetPriceLabel) targetPriceLabel.innerHTML = 'Target price (Rs.) <span class="text-muted small fw-normal">(optional)</span>';
+            if (targetPriceInput) {
+                targetPriceInput.placeholder = 'Optional for In-Stock';
+            }
+        } else {
+            if (targetPriceLabel) targetPriceLabel.innerHTML = 'Target price (Rs.)';
+            if (targetPriceInput) {
+                targetPriceInput.placeholder = '5000';
+            }
+        }
+    }
+
+    document.getElementById('modalEditCheckType')?.addEventListener('change', updateModalEditCheckType);
+
+    // Populate Edit Track Modal from triggering button
+    function populateEditTrackModal(btn) {
+        if (!btn) return;
+        const id = btn.getAttribute('data-id') || '';
+        const url = btn.getAttribute('data-url') || '';
+        const checkType = btn.getAttribute('data-checktype') || 'TargetPrice';
+        const targetPrice = btn.getAttribute('data-targetprice') || '';
+        const interval = btn.getAttribute('data-interval') || '1';
+        const startDate = btn.getAttribute('data-startdate') || '';
+        const startTime = btn.getAttribute('data-starttime') || '';
+        const endDate = btn.getAttribute('data-enddate') || '';
+        const endTime = btn.getAttribute('data-endtime') || '';
+        const disableAfter = btn.getAttribute('data-disableafter') === 'true';
+        const isActive = btn.getAttribute('data-isactive') === 'true';
+
+        const form = document.getElementById('editTrackPopupForm');
+        if (form && id) {
+            form.action = '/Dashboard/Edit/' + encodeURIComponent(id);
+        }
+
+        const pill = document.getElementById('modalEditTrackingIdPill');
+        if (pill) pill.textContent = id;
+
+        const idInput = document.getElementById('modalEditTrackingId');
+        if (idInput) idInput.value = id;
+
+        const urlInput = document.getElementById('modalEditProductUrl');
+        if (urlInput) urlInput.value = url;
+
+        const checkTypeSelect = document.getElementById('modalEditCheckType');
+        if (checkTypeSelect) {
+            checkTypeSelect.value = checkType;
+            updateModalEditCheckType();
+        }
+
+        const priceInput = document.getElementById('modalEditTargetPrice');
+        if (priceInput) priceInput.value = targetPrice;
+
+        const intervalInput = document.getElementById('modalEditCheckInterval');
+        if (intervalInput) intervalInput.value = interval;
+
+        const startD = document.getElementById('modalEditStartDate');
+        if (startD) startD.value = startDate;
+
+        const startT = document.getElementById('modalEditStartTime');
+        if (startT) startT.value = startTime;
+
+        const endD = document.getElementById('modalEditEndDate');
+        if (endD) endD.value = endDate;
+
+        const endT = document.getElementById('modalEditEndTime');
+        if (endT) endT.value = endTime;
+
+        const disableCheckbox = document.getElementById('modalEditDisableAfter');
+        if (disableCheckbox) disableCheckbox.checked = disableAfter;
+
+        const activeCheckbox = document.getElementById('modalEditIsActive');
+        if (activeCheckbox) activeCheckbox.checked = isActive;
+    }
+
+    // Toggle password visibility for security modal
+    function togglePasswordVisibility(inputId, btn) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        const isPassword = input.type === 'password';
+        input.type = isPassword ? 'text' : 'password';
+
+        const eyeShow = btn.querySelector('.eye-show');
+        const eyeHide = btn.querySelector('.eye-hide');
+        if (eyeShow && eyeHide) {
+            if (isPassword) {
+                eyeShow.classList.add('d-none');
+                eyeHide.classList.remove('d-none');
+            } else {
+                eyeShow.classList.remove('d-none');
+                eyeHide.classList.add('d-none');
+            }
+        }
+    }
+
+    // Intercept browser back button to close any open modal
+    document.addEventListener('show.bs.modal', function() {
+        window.history.pushState({ modalOpen: true }, '');
+    });
+
+    window.addEventListener('popstate', function() {
+        const openModals = document.querySelectorAll('.modal.show');
+        openModals.forEach(function(m) {
+            if (window.bootstrap && window.bootstrap.Modal) {
+                const inst = bootstrap.Modal.getInstance(m);
+                if (inst) inst.hide();
+            }
+        });
+    });
+</script>

@@ -1,0 +1,30 @@
+@model AdminSetupViewModel
+@{ ViewData["Title"] = "Set up admin"; }
+<div class="auth-shell single-panel">
+    <section class="auth-card">
+        <div class="sign-in-header">
+            <div class="sign-in-brand"><span class="brand-mark">S</span>SaleTrack</div>
+            <span class="eyebrow">ONE-TIME SETUP</span>
+            <h1>Create your admin</h1>
+            <p>This account manages the WhatsApp number that sends price alerts. Next, scan its QR code in Settings.</p>
+        </div>
+        <form asp-action="AdminSetup" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+            <label asp-for="Name">Admin name</label>
+            <input asp-for="Name" class="form-control" autocomplete="name" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+            <label asp-for="Email">Admin email</label>
+            <input asp-for="Email" class="form-control" autocomplete="username" />
+            <span asp-validation-for="Email" class="text-danger"></span>
+            <label asp-for="Password"></label>
+            <input asp-for="Password" class="form-control" autocomplete="new-password" />
+            <small class="text-muted">8–100 characters, with a capital letter, number and special character.</small>
+            <span asp-validation-for="Password" class="text-danger d-block"></span>
+            <label asp-for="ConfirmPassword">Confirm password</label>
+            <input asp-for="ConfirmPassword" class="form-control" autocomplete="new-password" />
+            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+            <button class="btn btn-primary w-100 mt-4" type="submit">Create admin & connect WhatsApp</button>
+        </form>
+        <p class="sign-in-register"><a asp-action="Login">Back to login</a></p>
+    </section>
+</div>

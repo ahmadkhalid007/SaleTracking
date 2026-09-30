@@ -1,0 +1,27 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "saletracking-ui",
+  "version": "0.1.0",
+  "description": "Design SaleTracking screens in Figma and implement them in the existing ASP.NET Core MVC application with responsive, accessible Razor views.",
+  "author": {
+    "name": "Ahmad Khalid"
+  },
+  "extensions": {
+    "com.openai": {
+      "apps": "./.app.json",
+      "interface": {
+        "displayName": "SaleTracking UI Studio",
+        "shortDescription": "Design in Figma and build in Razor",
+        "longDescription": "Create and refine SaleTracking UI designs in Figma, translate designs into the application's existing Razor views, CSS, and JavaScript, and verify responsive layouts and working interactions. Reuses the connected Figma app and the current codebase without replacing the application's framework.",
+        "developerName": "Ahmad Khalid",
+        "category": "Developer Tools",
+        "capabilities": ["Interactive"],
+        "defaultPrompt": [
+          "Design the SaleTracking dashboard in Figma and implement it in the existing application.",
+          "Implement this Figma screen in SaleTracking using its existing Razor views and CSS.",
+          "Review a SaleTracking screen for mobile layout, accessibility, and consistency with its Figma design."
+        ]
+      }
+    }
+  }
+}

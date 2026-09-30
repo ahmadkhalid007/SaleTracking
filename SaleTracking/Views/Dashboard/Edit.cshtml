@@ -1,0 +1,169 @@
+@model EditTrackViewModel
+@{
+    ViewData["Title"] = $"Edit · {Model.TrackingId}";
+    ViewData["WorkspaceClass"] = "modal-page-workspace";
+}
+
+<div class="modal-page-backdrop">
+    <div class="modal-dialog modal-dialog-centered modal-blur-dialog">
+        <div class="modal-content modal-blur-content">
+            <div class="modal-blur-header">
+                <div class="d-flex align-items-center gap-2">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                    <h5 class="modal-blur-title mb-0" id="edit-track-title">Edit tracking entry</h5>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="tracking-id-pill font-monospace small px-2 py-1">@Model.TrackingId</span>
+                    <a asp-action="TrackedProducts" class="modal-blur-close text-decoration-none" title="Close and return to Tracked Products">✕</a>
+                </div>
+            </div>
+
+            <div class="modal-blur-body">
+                <form asp-action="Edit" asp-route-id="@Model.TrackingId" method="post" class="create-track-form p-0 shadow-none border-0 bg-transparent m-0" aria-labelledby="edit-track-title">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="TrackingId" />
+                    <input type="hidden" name="returnUrl" value="@Url.Action("TrackedProducts")" />
+
+                    <partial name="_Alerts" />
+
+                    @if (!ViewData.ModelState.IsValid && ViewData.ModelState.Values.Any(v => v.Errors.Count > 0))
+                    {
+                        <div class="alert alert-danger modern-alert" role="alert">
+                            <div class="alert-content">
+                                <span class="alert-icon">⚠</span>
+                                <div asp-validation-summary="All" class="mb-0"></div>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="track-field mb-3">
+                        <label asp-for="ProductUrl" class="form-label"></label>
+                        <input asp-for="ProductUrl" type="text" inputmode="url" class="form-control" placeholder="https://example.com/product" />
+                        <span asp-validation-for="ProductUrl" class="text-danger d-block"></span>
+                    </div>
+
+                    <div class="track-field-row mb-3">
+                        <div class="track-field">
+                            <label asp-for="CheckType" class="form-label">Alert Condition</label>
+                            <select asp-for="CheckType" class="form-select form-control" id="checkTypeSelect">
+                                <option value="TargetPrice">Target Price Reached</option>
+                                <option value="InStock">Product In Stock (Availability)</option>
+                                <option value="Both">Both (Target Price & In Stock)</option>
+                            </select>
+                            <span asp-validation-for="CheckType" class="text-danger d-block"></span>
+                        </div>
+                        <div class="track-field" id="targetPriceContainer">
+                            <label asp-for="TargetPrice" class="form-label" id="targetPriceLabel">Target price (Rs.)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">Rs.</span>
+                                <input asp-for="TargetPrice" id="targetPriceInput" class="form-control" placeholder="5000" step="any" min="1" />
+                            </div>
+                            <span asp-validation-for="TargetPrice" class="text-danger d-block"></span>
+                        </div>
+                    </div>
+
+                    <div class="track-field mb-3">
+                        <label asp-for="CheckIntervalMinutes" class="form-label"></label>
+                        <div class="input-group">
+                            <input asp-for="CheckIntervalMinutes" class="form-control" min="1" max="10080" />
+                            <span class="input-group-text">minutes</span>
+                        </div>
+                        <span asp-validation-for="CheckIntervalMinutes" class="text-danger d-block"></span>
+                    </div>
+
+                    <fieldset class="track-date-range mb-3">
+                        <legend>Date & Time range <span class="track-optional">(optional)</span></legend>
+                        <div class="track-field-row mb-2">
+                            <div class="track-field">
+                                <label asp-for="StartDate" class="form-label">Start Date</label>
+                                <input asp-for="StartDate" class="form-control" type="date" />
+                                <span asp-validation-for="StartDate" class="text-danger d-block"></span>
+                            </div>
+                            <div class="track-field">
+                                <label asp-for="StartTime" class="form-label">Start Time (@TrackingSchedule.DisplayName) <span class="track-optional">(optional)</span></label>
+                                <input asp-for="StartTime" class="form-control" type="time" />
+                                <span asp-validation-for="StartTime" class="text-danger d-block"></span>
+                            </div>
+                        </div>
+                        <div class="track-field-row">
+                            <div class="track-field">
+                                <label asp-for="EndDate" class="form-label">End Date</label>
+                                <input asp-for="EndDate" class="form-control" type="date" />
+                                <span asp-validation-for="EndDate" class="text-danger d-block"></span>
+                            </div>
+                            <div class="track-field">
+                                <label asp-for="EndTime" class="form-label">End Time (@TrackingSchedule.DisplayName) <span class="track-optional">(optional)</span></label>
+                                <input asp-for="EndTime" class="form-control" type="time" />
+                                <span asp-validation-for="EndTime" class="text-danger d-block"></span>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <div class="track-field-row mb-3">
+                        <div class="form-check tracking-option">
+                            <input asp-for="DisableAfterNotification" class="form-check-input" />
+                            <label asp-for="DisableAfterNotification" class="form-check-label">
+                                Disable after 1st alert
+                            </label>
+                        </div>
+                        <div class="form-check tracking-option">
+                            <input asp-for="IsActive" class="form-check-input" />
+                            <label asp-for="IsActive" class="form-check-label">
+                                Tracker is active
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end align-items-center gap-2 mt-4 pt-2 border-top">
+                        <a class="btn btn-light" asp-action="TrackedProducts">Cancel</a>
+                        <button class="btn btn-create-track" type="submit">
+                            <span>Save changes</span>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const checkTypeSelect = document.getElementById('checkTypeSelect');
+        const targetPriceLabel = document.getElementById('targetPriceLabel');
+        const targetPriceInput = document.getElementById('targetPriceInput');
+
+        function updateTargetPriceState() {
+            if (!checkTypeSelect || !targetPriceLabel) return;
+            if (checkTypeSelect.value === 'InStock') {
+                targetPriceLabel.innerHTML = 'Target price (Rs.) <span class="track-optional">(optional for In Stock)</span>';
+                if (targetPriceInput) targetPriceInput.placeholder = 'Optional';
+            } else {
+                targetPriceLabel.textContent = 'Target price (Rs.)';
+                if (targetPriceInput) targetPriceInput.placeholder = '5000';
+            }
+        }
+
+        checkTypeSelect?.addEventListener('change', updateTargetPriceState);
+        updateTargetPriceState();
+
+        // Close on clicking outside the dialog
+        document.querySelector('.modal-page-backdrop')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                window.location.href = '@Url.Action("TrackedProducts")';
+            }
+        });
+
+        // Close on ESC key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                window.location.href = '@Url.Action("TrackedProducts")';
+            }
+        });
+    </script>
+}

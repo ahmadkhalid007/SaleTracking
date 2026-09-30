@@ -1,0 +1,126 @@
+@model SettingsViewModel
+
+<section id="email-sender" class="wa-card mb-4"
+         data-status-url="@Url.Action("Status", "Email")"
+         data-save-url="@Url.Action("Save", "Email")"
+         data-test-url="@Url.Action("Test", "Email")"
+         aria-labelledby="email-heading">
+    <div class="wa-card-header">
+        <div class="wa-heading-group">
+            <div>
+                <span class="wa-eyebrow">ADMIN CONTROL</span>
+                <h2 id="email-heading">Email Sender (SMTP & Google Authenticator)</h2>
+                <p>Deliver beautiful price drop alerts directly to your customers' inboxes using Google SMTP.</p>
+            </div>
+        </div>
+        <span class="wa-badge" data-email-badge>Checking SMTP...</span>
+    </div>
+
+    <div class="wa-card-body p-4" style="display: block;">
+        <!-- Two Column Layout: Setup Guide + Configuration Form -->
+        <div class="row g-4">
+            <!-- Left: Google Authenticator & App Password Guide -->
+            <div class="col-lg-5">
+                <div class="p-3 bg-light rounded-3 border">
+                    <h3 class="h6 fw-bold mb-2 d-flex align-items-center gap-2">
+                        <span style="font-size: 1.25rem;">🔐</span> Google Authenticator Setup Guide
+                    </h3>
+                    <p class="small text-muted mb-3">
+                        Google requires 2-Step Verification and a 16-character App Password to send emails via SMTP:
+                    </p>
+                    <ol class="small ps-3 mb-3 text-secondary" style="line-height: 1.6;">
+                        <li>
+                            Go to your <a href="https://myaccount.google.com/security" target="_blank" rel="noopener noreferrer" class="fw-semibold">Google Account Security</a>.
+                        </li>
+                        <li>
+                            Turn on <strong>2-Step Verification</strong> (using the <strong>Google Authenticator</strong> mobile app).
+                        </li>
+                        <li>
+                            Open <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener noreferrer" class="fw-semibold">Google App Passwords</a>.
+                        </li>
+                        <li>
+                            Name it <strong>SaleTrack Alerts</strong> and click <strong>Create</strong>.
+                        </li>
+                        <li>
+                            Copy the generated <strong>16-character code</strong> (e.g. <code>abcd efgh ijkl mnop</code>) and paste it into the Password field.
+                        </li>
+                    </ol>
+
+                    <div class="alert alert-info py-2 px-3 small mb-0">
+                        💡 <strong>Note:</strong> Never use your personal Google account password. Only the 16-character App Password works with SMTP.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: SMTP Settings & Live Test Form -->
+            <div class="col-lg-7">
+                <form id="smtp-config-form" class="mb-4">
+                    @Html.AntiForgeryToken()
+                    <div class="row g-3">
+                        <div class="col-sm-8">
+                            <label for="smtp-host" class="form-label small fw-semibold">SMTP Host</label>
+                            <input type="text" id="smtp-host" class="form-control form-control-sm" value="smtp.gmail.com" placeholder="smtp.gmail.com" required />
+                        </div>
+                        <div class="col-sm-4">
+                            <label for="smtp-port" class="form-label small fw-semibold">Port</label>
+                            <input type="number" id="smtp-port" class="form-control form-control-sm" value="587" min="1" max="65535" required />
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-1">
+                        <div class="col-sm-6">
+                            <label for="smtp-sender-email" class="form-label small fw-semibold">Gmail / Sender Email</label>
+                            <input type="email" id="smtp-sender-email" class="form-control form-control-sm" placeholder="your-email@gmail.com" required />
+                        </div>
+                        <div class="col-sm-6">
+                            <label for="smtp-sender-name" class="form-label small fw-semibold">Sender Display Name</label>
+                            <input type="text" id="smtp-sender-name" class="form-control form-control-sm" value="SaleTrack Alerts" placeholder="SaleTrack Alerts" />
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-1">
+                        <div class="col-sm-8">
+                            <label for="smtp-password" class="form-label small fw-semibold">
+                                Google App Password (16 chars)
+                            </label>
+                            <input type="password" id="smtp-password" class="form-control form-control-sm" placeholder="••••••••••••••••" autocomplete="new-password" />
+                            <small class="text-muted" id="smtp-password-hint">Leave blank to retain current saved password.</small>
+                        </div>
+                        <div class="col-sm-4 d-flex align-items-center pt-sm-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="smtp-ssl" checked />
+                                <label class="form-check-label small" for="smtp-ssl">
+                                    Enable SSL / TLS
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-2 mt-3">
+                        <button type="submit" id="btn-save-smtp" class="btn btn-primary btn-sm px-3">
+                            Save SMTP Settings
+                        </button>
+                        <span id="smtp-save-indicator" class="small text-muted" style="display: none;">Saving…</span>
+                    </div>
+                </form>
+
+                <!-- Test Email Section -->
+                <div class="border-top pt-3">
+                    <h4 class="h6 fw-bold mb-2">Test Google SMTP Email Delivery</h4>
+                    <p class="small text-muted mb-2">Send an instant test email to verify your Google Authenticator and SMTP setup:</p>
+                    <div class="input-group input-group-sm mb-2" style="max-width: 440px;">
+                        <input type="email" id="smtp-test-recipient" class="form-control" value="@Model.Email" placeholder="recipient@example.com" />
+                        <button type="button" id="btn-send-test-email" class="btn btn-outline-primary">
+                            Send Test Email
+                        </button>
+                    </div>
+                    <div id="smtp-test-result" class="alert small py-2 px-3 mt-2" style="display: none;" role="alert"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="wa-card-footer">
+        Alerts are sent automatically when price thresholds are reached for users with Email or Both notification preferences.
+    </div>
+</section>

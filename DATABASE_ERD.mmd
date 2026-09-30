@@ -1,0 +1,43 @@
+erDiagram
+    direction LR
+    Users ||..o{ TrackingItems : owns
+
+    Users {
+        TEXT Id PK "Account GUID"
+        TEXT Name
+        TEXT Email UK "Case-insensitive unique email"
+        TEXT WhatsAppNumber "Recipient number"
+        TEXT PasswordHash
+        INTEGER IsWhatsAppVerified "0 or 1"
+        INTEGER IsAdmin "At most one row with 1"
+        TEXT VerificationCode "Nullable"
+        INTEGER CodeExpiresAt "Nullable UTC ticks"
+        INTEGER DefaultCheckIntervalMinutes "1 to 10080"
+        TEXT DefaultNotificationPreference
+    }
+
+    TrackingItems {
+        TEXT TrackingId PK "TRK-prefixed identifier"
+        TEXT OwnerId FK "Required user; cascade delete"
+        TEXT ProductUrl
+        TEXT TargetPrice "Decimal text"
+        INTEGER CheckIntervalMinutes "1 to 10080"
+        TEXT StartDate "Nullable yyyy-MM-dd"
+        TEXT EndDate "Nullable yyyy-MM-dd"
+        INTEGER IsActive "0 or 1"
+        INTEGER IsNotified "0 or 1"
+        INTEGER DisableAfterNotification "0 or 1"
+        TEXT CurrentPrice "Nullable decimal text"
+        INTEGER LastCheckedAt "Nullable UTC ticks"
+        INTEGER NotifiedAt "Nullable UTC ticks"
+        TEXT NotificationMessageSid "Nullable"
+        TEXT LastCheckError "Nullable"
+        TEXT LastAlertError "Nullable"
+        TEXT TargetWhatsAppNumber "Nullable recipient snapshot"
+        INTEGER CreatedAt "UTC ticks"
+    }
+
+    ApplicationMetadata {
+        TEXT Key PK
+        TEXT Value
+    }

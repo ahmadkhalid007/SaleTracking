@@ -1,0 +1,58 @@
+<section id="whatsapp-sender" class="wa-card mb-4"
+         data-status-url="@Url.Action("Status", "WhatsApp")" data-reconnect-url="@Url.Action("Reconnect", "WhatsApp")"
+         data-disconnect-url="@Url.Action("Disconnect", "WhatsApp")" aria-labelledby="wa-heading">
+    <div class="wa-card-header">
+        <div class="wa-heading-group">
+            <div>
+                <span class="wa-eyebrow">ADMIN CONTROL</span>
+                <h2 id="wa-heading">WhatsApp Sender</h2>
+                <p>Connect the account that sends your customers' price alerts.</p>
+            </div>
+        </div>
+        <span class="wa-badge" data-wa-badge>Checking connection</span>
+    </div>
+    <div class="wa-card-body">
+        <div class="wa-preview" aria-busy="true" data-wa-preview>
+            <img data-wa-qr hidden width="264" height="264" alt="Scan this QR code with the WhatsApp account that will send alerts" />
+            <div data-wa-placeholder class="wa-placeholder">
+                <span class="wa-state-icon" data-wa-icon aria-hidden="true">↻</span>
+                <strong data-wa-preview-title>Checking WhatsApp</strong>
+                <span data-wa-preview-detail>Your connection will appear here.</span>
+            </div>
+        </div>
+        <div class="wa-instructions">
+            <h3 data-wa-title>Link your sender in a few seconds</h3>
+            <p data-wa-description>Use the phone with the WhatsApp account you want to send alerts from.</p>
+            <ol class="wa-steps" data-wa-steps>
+                <li><span>1</span><div>Open <strong>WhatsApp</strong> on the sender's phone.</div></li>
+                <li><span>2</span><div>Go to <strong>Settings / Menu → Linked devices</strong>.</div></li>
+                <li><span>3</span><div>Tap <strong>Link a device</strong> and scan this QR code.</div></li>
+            </ol>
+            <div class="wa-number" data-wa-number-box hidden>
+                <span>CONNECTED SENDER</span>
+                <strong data-wa-number></strong>
+                <p>Eligible price alerts are sent from this WhatsApp account.</p>
+            </div>
+            <div class="wa-live-status" role="status" aria-live="polite" data-wa-status>Checking the saved connection…</div>
+            <p class="text-danger" role="alert" data-wa-error hidden></p>
+            <div class="wa-actions">
+                <form data-wa-form>
+                    @Html.AntiForgeryToken()
+                    <button type="button" class="btn btn-primary" data-wa-reconnect hidden>Reconnect WhatsApp</button>
+                    <button type="button" class="btn btn-outline-danger" data-wa-disconnect hidden>Disconnect WhatsApp</button>
+                </form>
+                <button type="button" class="btn btn-outline-secondary" data-wa-refresh>Refresh status</button>
+            </div>
+            <div class="alert alert-warning mt-3 mb-0" role="group" aria-labelledby="wa-disconnect-title" data-wa-confirmation hidden>
+                <h4 id="wa-disconnect-title" class="h6">Disconnect WhatsApp?</h4>
+                <p class="small mb-3">Alerts will pause for all users until you reconnect and scan a new QR code.</p>
+                <div class="wa-actions">
+                    <button type="button" class="btn btn-danger" data-wa-confirm-disconnect>Yes, disconnect</button>
+                    <button type="button" class="btn btn-outline-secondary" data-wa-cancel-disconnect>Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="wa-card-footer">Only admins can manage this connection. Disconnecting pauses WhatsApp alerts until you link an account again.</div>
+    <noscript><p class="alert alert-warning m-3">Enable JavaScript to display and refresh the WhatsApp QR code.</p></noscript>
+</section>

@@ -1,0 +1,9 @@
+@model IReadOnlyCollection<TrackingItem>
+@{
+    ViewData["Title"] = "Tracked Products";
+    ViewData["WorkspaceClass"] = "tracked-products-workspace";
+    ViewData["AppContentClass"] = "tracked-products-content";
+    ViewData["IsDashboard"] = true;
+}
+
+<partial name="_TrackedProductsTable" model="Model" />

@@ -1,0 +1,175 @@
+@{
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString();
+    var action = ViewContext.RouteData.Values["action"]?.ToString();
+    var isAuthPage = controller == "Account";
+    var isLoginPage = isAuthPage && (action == "Login" || action == "AdminLogin");
+    var isDashboard = (controller == "Dashboard" && action == "Index") || (ViewData["IsDashboard"] as bool? == true);
+}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] · SaleTrack</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @if (controller == "Settings" && User.IsInRole("Admin"))
+    {
+        <link rel="stylesheet" href="~/css/whatsapp-sender.css" asp-append-version="true" />
+    }
+</head>
+<body class="@(isAuthPage ? "login-page" : "") @(isLoginPage ? "sign-in-page" : "")">
+@if (User.Identity?.IsAuthenticated == true && controller != "Account")
+{
+    <div class="app-shell">
+        <div class="app-content @ViewData["AppContentClass"]">
+            <header class="app-topbar">
+                <div class="topbar-left">
+                    <a class="topbar-brand" asp-controller="Dashboard" asp-action="Index">
+                        <span class="brand-mark">S</span>
+                        <span class="brand-name">SaleTrack</span>
+                    </a>
+                </div>
+
+                <div class="topbar-right">
+                    <!-- Notification Bell with Dropdown Popover -->
+                    <div class="dropdown notification-dropdown">
+                        <button class="btn btn-topbar-icon" id="notifBellBtn" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" title="In-App Notifications">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                            </svg>
+                            <span class="badge rounded-pill bg-danger notif-badge-pill d-none" id="notifBadge">0</span>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end notification-popover shadow-lg" aria-labelledby="notifBellBtn">
+                            <div class="notif-popover-header">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="fw-bold">Notifications</span>
+                                        <span class="badge bg-light text-muted border small">In-App</span>
+                                    </div>
+                                    <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-muted" id="btnMarkAllRead">Mark all as read</button>
+                                </div>
+                            </div>
+                            <div class="notif-body" id="notifList">
+                                <div class="text-center py-4 text-muted small">Loading notifications...</div>
+                            </div>
+                            <div class="notif-popover-footer text-center">
+                                <a asp-controller="Dashboard" asp-action="Index" class="text-decoration-none small text-primary fw-semibold">View All Tracked Products →</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Profile Button (Chrome-style) with Dropdown -->
+                    <div class="dropdown settings-topbar-dropdown">
+                        <button class="btn btn-chrome-profile" id="settingsDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false" title="Account & Settings (@User.Identity?.Name)">
+                            <div class="chrome-profile-ring">
+                                <div class="chrome-profile-avatar">
+                                    <span class="chrome-profile-initial">@(User.Identity?.Name?.Length > 0 ? User.Identity.Name.Substring(0, 1).ToUpper() : "U")</span>
+                                </div>
+                            </div>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end settings-dropdown-menu shadow-lg" aria-labelledby="settingsDropdownBtn">
+                            <li class="settings-user-header px-3 py-2 border-bottom mb-1">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="user-avatar-badge">@(User.Identity?.Name?.Length > 0 ? User.Identity.Name.Substring(0, 1).ToUpper() : "U")</span>
+                                    <div class="user-meta-info" style="min-width: 0;">
+                                        <div class="fw-semibold text-dark text-truncate" style="font-size: 0.88rem;">@User.Identity?.Name</div>
+                                        <div class="text-muted d-flex align-items-center gap-1" style="font-size: 0.76rem;">
+                                            <span class="status-indicator"></span> @(User.IsInRole("Admin") ? "Administrator" : "User")
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            <li>
+                                <button type="button" class="dropdown-item d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#accountSettingsModal">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="12" cy="7" r="4"></circle>
+                                    </svg>
+                                    <span>Account & Tracking Settings</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button type="button" class="dropdown-item d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#securitySettingsModal">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
+                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                    </svg>
+                                    <span>Security & Password</span>
+                                </button>
+                            </li>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <li><hr class="dropdown-divider my-1"></li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-controller="Settings" asp-action="Index">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-warning">
+                                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                        </svg>
+                                        <span>Admin Portal & Sender Settings</span>
+                                    </a>
+                                </li>
+                            }
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li>
+                                <form asp-controller="Account" asp-action="Logout" method="post" class="m-0 p-0 w-100">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="dropdown-item dropdown-item-danger text-danger d-flex align-items-center gap-2 w-100" title="Sign out of your account">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                            <polyline points="16 17 21 12 16 7"></polyline>
+                                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                                        </svg>
+                                        <span>Sign Out</span>
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </header>
+            <main class="workspace @ViewData["WorkspaceClass"]">
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+}
+else
+{
+    @if (!isAuthPage)
+    {
+        <nav class="navbar app-nav">
+            <div class="container">
+                <a class="navbar-brand text-white fw-bold" asp-controller="Home" asp-action="Index">
+                    <b class="brand-mark">S</b> SaleTrack
+                </a>
+                <div class="ms-auto d-flex align-items-center gap-3">
+                    <a class="text-white-50" asp-controller="Account" asp-action="Login">Log in</a>
+                    <a class="text-white-50" asp-controller="Account" asp-action="AdminLogin">Admin Login</a>
+                    <a class="btn btn-light btn-sm" asp-controller="Account" asp-action="Register">Create account</a>
+                </div>
+            </div>
+        </nav>
+    }
+    <main class="@(isAuthPage ? "login-main" : "container py-5")">
+        @RenderBody()
+    </main>
+}
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+@if (User.Identity?.IsAuthenticated == true && controller != "Account")
+{
+    <script src="~/js/notifications.js" asp-append-version="true"></script>
+}
+@if (User.Identity?.IsAuthenticated == true && controller != "Account")
+{
+    <partial name="_GlobalModals" />
+}
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

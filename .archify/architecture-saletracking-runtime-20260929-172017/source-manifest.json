@@ -1,0 +1,163 @@
+{
+  "sourceRoot": "D:/SaleTracking",
+  "analyzedAt": "2026-09-29",
+  "fingerprintedAt": "2026-09-30T10:16:25.5254350+05:00",
+  "basis": "Inspected local working-copy source, not Git-verified or runtime-observed",
+  "files": [
+    {
+      "path": "SaleTracking/Program.cs",
+      "sha256": "607dde8bd399ccd2dba6397b1721fa8361b4259fcae25b430586d28985842a13",
+      "lines": 82
+    },
+    {
+      "path": "SaleTracking/SaleTracking.csproj",
+      "sha256": "4ee8145e45e9778914f2b5640ce85f7d6e2df321d082161ee6899c99f3570db7",
+      "lines": 14
+    },
+    {
+      "path": "SaleTracking/Controllers/AccountController.cs",
+      "sha256": "a77c14b61c57dff35f609ef0b2593f398c1f6c28dc7181a784d198c9d1e959fd",
+      "lines": 183
+    },
+    {
+      "path": "SaleTracking/Controllers/DashboardController.cs",
+      "sha256": "5308649d8c7cefa29b0e9857c55afcfc2364aad4aae18c5705ee6a1d1f935492",
+      "lines": 211
+    },
+    {
+      "path": "SaleTracking/Controllers/CreateController.cs",
+      "sha256": "85954405d3719b0fc17ec5e76584e8c5ef0a5c82ea832e984b0d323298c77596",
+      "lines": 171
+    },
+    {
+      "path": "SaleTracking/Controllers/WhatsAppController.cs",
+      "sha256": "c62a30549cb0b75eeebc13a7b6444884cdd12d25e65475f1310eef250e906ea9",
+      "lines": 42
+    },
+    {
+      "path": "SaleTracking/Controllers/EmailController.cs",
+      "sha256": "f7b9982f511c3b7c4afa7aaf392b02ea4d356518694c00b5af3ecf3c16063587",
+      "lines": 131
+    },
+    {
+      "path": "SaleTracking/Controllers/NotificationsController.cs",
+      "sha256": "64c01ac7ae1d1845fb602f09d4572f2867264a2aa4266da98d15cabb11341310",
+      "lines": 78
+    },
+    {
+      "path": "SaleTracking/Services/AccountCookieEvents.cs",
+      "sha256": "9f5880e32500359c9171779f9898b077f110a81ba4b6fc81a249394247ed402b",
+      "lines": 38
+    },
+    {
+      "path": "SaleTracking/Services/AccountServices.cs",
+      "sha256": "430da5b282a140c2d4add75653c17555f6f40a28d3d4747685df29bcfe600266",
+      "lines": 79
+    },
+    {
+      "path": "SaleTracking/Services/PriceTrackingServices.cs",
+      "sha256": "2d53d3207ef55d23bf0b1ac6cf067887dbecc2c37cf41100f16219efee664d5e",
+      "lines": 316
+    },
+    {
+      "path": "SaleTracking/Services/PriceTrackingProcessor.cs",
+      "sha256": "b7279fb5ef1edf65e334d14ac58d3ff18c9a2e44d870098a4f9ea5a7a4b8f486",
+      "lines": 286
+    },
+    {
+      "path": "SaleTracking/Services/TrackingSchedule.cs",
+      "sha256": "5f5c208c607cc028b4e805f06a69a3dfa68d8f8a7be3abf597236b82365a00f0",
+      "lines": 32
+    },
+    {
+      "path": "SaleTracking/Services/ShopifyProductScraping.cs",
+      "sha256": "97a80b730c0cdf5d61d4dfb07ae182f5a218b0a29c64caece9c6f324e288a777",
+      "lines": 176
+    },
+    {
+      "path": "SaleTracking/Services/WhatsAppWebNotificationService.cs",
+      "sha256": "0234db35b006ed621dd03db22ff4dfd25c742ee229b7cdfbd035dd1926ac648d",
+      "lines": 240
+    },
+    {
+      "path": "SaleTracking/Services/WhatsAppBridgeWorker.cs",
+      "sha256": "3e2232c8a54af214181bc324d43e7a4655668c4249e4bd2712dadd4e7a921e10",
+      "lines": 122
+    },
+    {
+      "path": "SaleTracking/Services/EmailNotificationService.cs",
+      "sha256": "b0ae62665abe8003cbd911cbf54faa8be6b4af91518c71064ed422b20c762dd4",
+      "lines": 415
+    },
+    {
+      "path": "SaleTracking/Services/ISmtpConfigurationStore.cs",
+      "sha256": "e4d3728ab72b3ba9f7792d0cbcad1f288bbd0be4b5c3b363f89dd529f1256734",
+      "lines": 115
+    },
+    {
+      "path": "SaleTracking/Services/InAppNotificationService.cs",
+      "sha256": "f8ab12124237bcbc76fdfbb7dcd3d405afbaa322ad0884db6f2267add91fdd9e",
+      "lines": 332
+    },
+    {
+      "path": "SaleTracking/Services/SqliteDatabase.cs",
+      "sha256": "8a44c109cbf9b843a0502b0d35dccd0eb41044d510c8750c9307ce9f483b6daa",
+      "lines": 144
+    },
+    {
+      "path": "SaleTracking/Services/SqliteTrackingStore.cs",
+      "sha256": "7f716917d934ba69e54b3f7d922a0ce754f32a4f40708bb60192f95d8ce87bfd",
+      "lines": 174
+    },
+    {
+      "path": "SaleTracking/Services/SqliteAccountStore.cs",
+      "sha256": "775d4298e7557c2932eb7737a73856cb45ac38397bb878b4c3ba36ec2cc9d531",
+      "lines": 94
+    },
+    {
+      "path": "SaleTracking/Models/ProductUrlAttribute.cs",
+      "sha256": "64835142298cf6b6d8bcd005262a5dc4e4a041eb1f5915ce7fd4a63f9ed535bd",
+      "lines": 32
+    },
+    {
+      "path": "SaleTracking/wwwroot/js/notifications.js",
+      "sha256": "b9c8cf6cf9155d58bf123619ccd85121159a0b4ee3fd273e549054c5b9007f47",
+      "lines": 152
+    },
+    {
+      "path": "WhatsAppBridge/package.json",
+      "sha256": "7195f327d76b04a0f1a70ddd3c8dd36f0604bc26890059b8b167da0b9bdc4859",
+      "lines": 15
+    },
+    {
+      "path": "WhatsAppBridge/server.js",
+      "sha256": "938647eaa74dd43b469ea594b115b62c95af29e9b585c504b8e010cc8a42ffc6",
+      "lines": 272
+    },
+    {
+      "path": "WhatsAppBridge/http-server.js",
+      "sha256": "34aaf2ddf715bb6243cfb5d15dfbe783427adda7a6402db1e6e9d0143385d173",
+      "lines": 67
+    },
+    {
+      "path": "WhatsAppBridge/sender.js",
+      "sha256": "979d86e58256b42961b1deb7bd85f8018f1b15bd419b8bda34ba0596740a522c",
+      "lines": 88
+    },
+    {
+      "path": "DATABASE_SETUP.md",
+      "sha256": "76d7c73850db7eaf0c768fbfcd4d1c68b63afb7265c81023a20e1f5fc186ed4b",
+      "lines": 56
+    },
+    {
+      "path": "WHATSAPP_SETUP.md",
+      "sha256": "c5187d59f57faa945d7a8bf293601f073ed755a566e39adb105aa9e258e9e6bd",
+      "lines": 85
+    },
+    {
+      "path": "EMAIL_SETUP.md",
+      "sha256": "5f9d9de2b4828ef0d976b6a952bec560c3a0d35f09f2a589d45836c34af2c886",
+      "lines": 102
+    }
+  ]
+}

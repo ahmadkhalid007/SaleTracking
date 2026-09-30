@@ -1,0 +1,43 @@
+@{
+    ViewData["Title"] = "Create Track";
+    var trackingId = TempData["TrackingId"] as string;
+    var checkError = TempData["ErrorMessage"] as string;
+}
+
+<div class="track-success-wrap">
+    <section class="track-success" role="status" aria-live="polite" aria-atomic="true"
+             data-return-url="@(checkError is null ? Url.Action("NewSale", "Create") : null)" data-return-delay="4000">
+        <div class="track-success-icon" aria-hidden="true">
+            <svg viewBox="0 0 48 48" fill="none">
+                <path d="M13 24.5 20.5 32 35 17" pathLength="1" />
+            </svg>
+        </div>
+        <h1>@TempData["SuccessMessage"]</h1>
+        @if (!string.IsNullOrWhiteSpace(checkError))
+        {
+            <div class="alert alert-warning mt-3" role="alert">@checkError</div>
+        }
+        @if (!string.IsNullOrEmpty(trackingId))
+        {
+            <p class="track-success-reference">
+                <span>Tracking ID</span>
+                <code>@trackingId</code>
+            </p>
+            <div class="d-flex align-items-center justify-content-center gap-2 mt-4 flex-wrap">
+                <a asp-controller="Dashboard" asp-action="TrackedProducts" class="btn btn-primary">View Tracked Products</a>
+                <a asp-controller="Dashboard" asp-action="Details" asp-route-id="@trackingId" class="btn btn-outline-secondary">View Tracker Details</a>
+                <a asp-controller="Create" asp-action="NewSale" class="btn btn-light border">Create Another Track</a>
+            </div>
+        }
+        else
+        {
+            <div class="d-flex align-items-center justify-content-center gap-2 mt-4">
+                <a asp-controller="Dashboard" asp-action="TrackedProducts" class="btn btn-primary">Go to Tracked Products</a>
+            </div>
+        }
+        @if (checkError is null)
+        {
+            <p class="text-muted small mt-3 mb-0">Returning to the form in 4 seconds…</p>
+        }
+    </section>
+</div>

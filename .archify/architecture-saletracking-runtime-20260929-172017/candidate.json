@@ -1,0 +1,377 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "SaleTracking · Runtime Architecture",
+    "locale": "en",
+    "output": ".archify/architecture-saletracking-runtime-20260929-172017/saletracking-runtime.html",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    {
+      "id": "browser",
+      "type": "frontend",
+      "label": "Customer / Admin",
+      "sublabel": "Browser · untrusted input",
+      "pos": [
+        0,
+        320
+      ],
+      "size": [
+        170,
+        80
+      ]
+    },
+    {
+      "id": "web",
+      "type": "security",
+      "label": "Web UI & Access",
+      "sublabel": "MVC / Razor · cookie identity",
+      "tag": "Owner + admin checks",
+      "pos": [
+        270,
+        310
+      ],
+      "size": [
+        210,
+        100
+      ]
+    },
+    {
+      "id": "scheduler",
+      "type": "backend",
+      "label": "Tracking Worker",
+      "sublabel": "In-process · scan every 5s",
+      "tag": "Per-tracker intervals",
+      "pos": [
+        270,
+        80
+      ],
+      "size": [
+        210,
+        80
+      ]
+    },
+    {
+      "id": "processor",
+      "type": "backend",
+      "label": "Tracking Processor",
+      "sublabel": "Price / stock · schedule gates",
+      "tag": "Shared serialized checks",
+      "pos": [
+        600,
+        290
+      ],
+      "size": [
+        220,
+        140
+      ]
+    },
+    {
+      "id": "scraper",
+      "type": "backend",
+      "label": "Product Scraper",
+      "sublabel": "HTML + Shopify / catalog JSON",
+      "pos": [
+        600,
+        80
+      ],
+      "size": [
+        220,
+        80
+      ]
+    },
+    {
+      "id": "retailers",
+      "type": "external",
+      "label": "Retailer Websites",
+      "sublabel": "Product pages / product APIs",
+      "tag": "Untrusted remote content",
+      "pos": [
+        960,
+        80
+      ],
+      "size": [
+        220,
+        80
+      ]
+    },
+    {
+      "id": "alerts",
+      "type": "backend",
+      "label": "Alert Adapters",
+      "sublabel": "WhatsApp / Email / In-app",
+      "tag": "User-selected channels",
+      "pos": [
+        600,
+        560
+      ],
+      "size": [
+        220,
+        80
+      ]
+    },
+    {
+      "id": "sqlite",
+      "type": "database",
+      "label": "SQLite + Stores",
+      "sublabel": "Accounts · tracks · receipts",
+      "tag": "WAL · local database",
+      "pos": [
+        270,
+        560
+      ],
+      "size": [
+        210,
+        80
+      ]
+    },
+    {
+      "id": "smtp",
+      "type": "external",
+      "label": "SMTP Provider",
+      "sublabel": "Configured mail server",
+      "tag": "TLS on by default",
+      "pos": [
+        960,
+        560
+      ],
+      "size": [
+        220,
+        80
+      ]
+    },
+    {
+      "id": "bridge",
+      "type": "backend",
+      "label": "WhatsApp Bridge",
+      "sublabel": "Node.js + headless Chromium",
+      "tag": "127.0.0.1:3210",
+      "pos": [
+        600,
+        820
+      ],
+      "size": [
+        220,
+        80
+      ]
+    },
+    {
+      "id": "bridge-files",
+      "type": "database",
+      "label": "Bridge Private Files",
+      "sublabel": "Token · session · send journal",
+      "tag": ".local/whatsapp",
+      "pos": [
+        270,
+        820
+      ],
+      "size": [
+        210,
+        80
+      ]
+    },
+    {
+      "id": "whatsapp",
+      "type": "external",
+      "label": "WhatsApp Network",
+      "sublabel": "Linked sender → recipient",
+      "tag": "Unofficial Web integration",
+      "pos": [
+        960,
+        820
+      ],
+      "size": [
+        220,
+        80
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "LOCAL HOST · application + managed bridge + private storage",
+      "wraps": [
+        "web",
+        "scheduler",
+        "processor",
+        "scraper",
+        "alerts",
+        "sqlite",
+        "bridge",
+        "bridge-files"
+      ],
+      "pad": 44
+    },
+    {
+      "kind": "security-group",
+      "label": "Cookie / ownership / admin gates",
+      "wraps": [
+        "web"
+      ],
+      "pad": 22
+    },
+    {
+      "kind": "security-group",
+      "label": "Private filesystem access",
+      "wraps": [
+        "sqlite",
+        "bridge-files"
+      ],
+      "pad": 22
+    },
+    {
+      "kind": "security-group",
+      "label": "Loopback + bearer token",
+      "wraps": [
+        "bridge"
+      ],
+      "pad": 22
+    }
+  ],
+  "connections": [
+    {
+      "id": "browser-web",
+      "from": "browser",
+      "to": "web",
+      "label": "HTTP(S)",
+      "variant": "emphasis"
+    },
+    {
+      "id": "manual-check",
+      "from": "web",
+      "to": "processor",
+      "label": "Check Now",
+      "variant": "emphasis"
+    },
+    {
+      "id": "scheduled-check",
+      "from": "scheduler",
+      "to": "processor",
+      "label": "Due checks",
+      "variant": "dashed"
+    },
+    {
+      "id": "product-check",
+      "from": "processor",
+      "to": "scraper",
+      "label": "Fetch + parse"
+    },
+    {
+      "id": "external-fetch",
+      "from": "scraper",
+      "to": "retailers",
+      "label": "HTTP(S) GET",
+      "variant": "dashed"
+    },
+    {
+      "id": "eligible-alert",
+      "from": "processor",
+      "to": "alerts",
+      "label": "Eligible alert",
+      "variant": "emphasis"
+    },
+    {
+      "id": "tracker-persistence",
+      "from": "web",
+      "to": "sqlite",
+      "label": "Accounts / CRUD"
+    },
+    {
+      "id": "check-persistence",
+      "from": "processor",
+      "to": "sqlite",
+      "label": "Checks / receipts"
+    },
+    {
+      "id": "email-path",
+      "from": "alerts",
+      "to": "smtp",
+      "label": "SMTP if selected",
+      "variant": "dashed"
+    },
+    {
+      "id": "bridge-submit",
+      "from": "alerts",
+      "to": "bridge",
+      "label": "HTTP + bearer",
+      "variant": "emphasis"
+    },
+    {
+      "id": "bridge-journal",
+      "from": "bridge",
+      "to": "bridge-files",
+      "label": "Session / journal"
+    },
+    {
+      "id": "whatsapp-submit",
+      "from": "bridge",
+      "to": "whatsapp",
+      "label": "Web submission",
+      "variant": "emphasis"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "01 · Primary path",
+      "items": [
+        "Highlighted route: signed-in user runs Check Now → shared processor → selected WhatsApp adapter → bridge → WhatsApp network.",
+        "The processor fetches product data before evaluating the alert. Creation saves a tracker; it does not send immediately.",
+        "Eligible = condition met, active, inside the time window, and not fully notified. Channels follow the owner's preference.",
+        "Evidence: DashboardController.cs:135–142; PriceTrackingProcessor.cs:48–286; WhatsAppWebNotificationService.cs:170–239."
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "02 · Runtime & scheduling",
+      "items": [
+        "Web, worker, processor, scraper and adapters are logical modules in one .NET 8 process. They are not separate network services.",
+        "A five-second scan finds due trackers; per-tracker intervals and Asia/Karachi schedule windows control eligibility. Manual and scheduled checks share a lock.",
+        "WhatsAppBridgeWorker starts/restarts Node, or reuses an existing authenticated bridge. The bridge owns headless Chromium.",
+        "Evidence: Program.cs:9–44; PriceTrackingServices.cs (PriceTrackingWorker); TrackingSchedule.cs; WhatsAppBridgeWorker.cs:8–94."
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "03 · External paths",
+      "items": [
+        "Retailer path: server-side HTTP(S) fetch → HTML / product JSON parsing → price and stock result. Shopify selects the requested variant; HTTP 429 delays that host.",
+        "Email uses the configured SMTP server; SSL/TLS defaults on but is configurable. WhatsApp uses whatsapp-web.js, not the official Business API.",
+        "In-app alerts stay in SQLite; the browser polls /Notifications/Recent every 25 seconds. This supporting path is kept off the edge map.",
+        "Evidence: PriceTrackingServices.cs:29–140; ShopifyProductScraping.cs; EmailNotificationService.cs:10–47; notifications.js:150–151."
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "04 · Trust boundaries",
+      "items": [
+        "Browser → app: cookie identity is revalidated against stored accounts; owner filters protect trackers; admin role gates SMTP and sender controls; modifying forms use antiforgery.",
+        "App → bridge: loopback-only address, bearer secret, Host/Origin checks, and no redirect following. The browser receives no bridge secret.",
+        "Remote content and user URLs are untrusted. URL validation accepts HTTP(S); no private-address or DNS destination filtering was found in the inspected scraper path.",
+        "Private storage depends on host filesystem permissions. SQLite and persisted SMTP settings are not encrypted by this code. Chromium is launched with --no-sandbox.",
+        "Evidence: AccountCookieEvents.cs; SqliteTrackingStore.cs:40–74; http-server.js:5–30; ProductUrlAttribute.cs; ISmtpConfigurationStore.cs; server.js:47–65."
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "05 · State & delivery semantics",
+      "items": [
+        "SQLite stores users, trackers, in-app alerts, SMTP settings and per-channel receipts; bridge token, linked session and send journal live separately in .local/whatsapp.",
+        "Successful channels are recorded individually. Later checks retry missing channels; a tracker is fully notified only after every selected channel succeeds.",
+        "The bridge journals a stable alert reference before sending. An ambiguous send blocks automatic resubmission for that reference; submission does not prove delivery or reading.",
+        "Evidence: SqliteDatabase.cs:30–60; SqliteTrackingStore.cs:95–150; InAppNotificationService.cs; PriceTrackingProcessor.cs:163–286; sender.js:14–103."
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "06 · Scope & evidence limits",
+      "items": [
+        "12 core components / 12 relationships. This map describes the inspected working copy and default single-host arrangement, not an observed production deployment.",
+        "No Git metadata is present in this checkout: citations are local source references, not commit-verified provenance. Full paths and file hashes are in analysis.md and source-manifest.json beside this diagram.",
+        "Signup verification is a development logger registered in Program.cs, separate from real alert delivery. No reverse proxy, hosted queue, or distributed scheduler is evidenced here.",
+        "Evidence: Program.cs:18, 36–37; AccountServices.cs (DevelopmentWhatsAppVerificationService); DATABASE_SETUP.md; WHATSAPP_SETUP.md."
+      ]
+    }
+  ]
+}

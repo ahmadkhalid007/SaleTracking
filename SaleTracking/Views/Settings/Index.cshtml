@@ -1,0 +1,39 @@
+@model SettingsViewModel
+@{
+    ViewData["Title"] = "Sender & Channel Settings";
+}
+
+<div class="dashboard-head mb-4">
+    <div>
+        <span class="eyebrow">ADMIN PORTAL</span>
+        <h1 class="mt-1 mb-0">Sender & Channel Settings</h1>
+    </div>
+</div>
+
+<partial name="_Alerts" />
+
+@if (User.IsInRole("Admin"))
+{
+    <partial name="_WhatsAppSender" />
+    <partial name="_EmailSender" />
+}
+else
+{
+    <div class="alert alert-info modern-alert mb-4" role="alert">
+        <div class="alert-content">
+            <span class="alert-icon">ℹ</span>
+            <div>
+                <strong>Admin Access Required</strong>
+                <p class="mb-0 mt-1">Sender and channel configuration is reserved for administrators. Use the Settings menu at the top right to manage your account and security preferences.</p>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    @if (User.IsInRole("Admin"))
+    {
+        <script src="~/js/whatsapp-sender.js" asp-append-version="true"></script>
+        <script src="~/js/email-sender.js" asp-append-version="true"></script>
+    }
+}
